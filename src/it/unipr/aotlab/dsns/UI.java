@@ -3,11 +3,17 @@
 package it.unipr.aotlab.dsns;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
 import java.util.ResourceBundle;
 
@@ -21,6 +27,7 @@ import java.util.ResourceBundle;
 public class UI extends Composite {
     String RESOURCE_BUNDLE_NAME = "it.unipr.aotlab.dsns.messages.Messages";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(RESOURCE_BUNDLE_NAME);
+    private Text insertTextEdit;
 
     /**
      * Constructs a new instance of this class given its parent
@@ -61,8 +68,42 @@ public class UI extends Composite {
         this.setLayout(new GridLayout(1, false));
 
         createTitleLabel();
+        createInsertField();
 
         return true;
+    }
+
+    private void createInsertField() {
+        Group insertionGroup = new Group(this, SWT.SHADOW_IN);
+        insertionGroup.setText(resourceBundle.getString("dsns.insertionGroupLabel"));
+        insertionGroup.setLayout(new GridLayout(4, false));
+        insertionGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 4, 10));
+
+//        Label lblDescription = new Label(insertionGroup, SWT.LEFT);
+//        lblDescription.setText(resourceBundle.getString("dsns.insertMessageLabel"));
+
+        insertTextEdit = new Text(insertionGroup, SWT.MULTI);
+        insertTextEdit.setText("");
+        insertTextEdit.setLayoutData(
+                new GridData(SWT.FILL, SWT.FILL, true, true, 4, 10)
+        );
+        insertTextEdit.addKeyListener(
+                new KeyListener() {
+                    @Override
+                    public void keyPressed(final KeyEvent e) {
+                        if (e.keyCode == '\r' &&
+                                (e.stateMask & (SWT.SHIFT | SWT.ALT)) == 0) {
+                            System.out.println(extractNewMessage());
+                            e.doit = false;
+                        }
+                    }
+
+                    @Override
+                    public void keyReleased(final KeyEvent e) {
+
+                    }
+                }
+        );
     }
 
     private void createTitleLabel() {
@@ -77,5 +118,11 @@ public class UI extends Composite {
         ));
         mainLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+    }
+
+    private String extractNewMessage() {
+        String msg = insertTextEdit.getText();
+        insertTextEdit.setText("");
+        return msg;
     }
 }
