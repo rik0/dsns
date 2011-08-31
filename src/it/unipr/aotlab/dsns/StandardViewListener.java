@@ -2,8 +2,13 @@
 
 package it.unipr.aotlab.dsns;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+
+import javax.swing.*;
 
 /**
  * User: enrico
@@ -21,14 +26,13 @@ public class StandardViewListener implements UISWTViewEventListener {
 
         case UISWTViewEvent.TYPE_INITIALIZE:
             System.out.println("Initializing plugin...");
+            new UI((Composite)uiswtViewEvent.getData(), SWT.NULL);
             break;
 
         case UISWTViewEvent.TYPE_REFRESH:
-            //refresh();
             break;
 
         case UISWTViewEvent.TYPE_DESTROY:
-            System.out.println("Exit, destroying plugin...");
             break;
 
         case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
