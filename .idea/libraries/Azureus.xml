@@ -3,7 +3,12 @@
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/Azureus2.jar!/" />
     </CLASSES>
-    <JAVADOC />
-    <SOURCES />
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/Vuze_0000-00_javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/Vuze_0000-00_plugindoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/Vuze_0000-00_source.zip!/" />
+    </SOURCES>
   </library>
 </component>

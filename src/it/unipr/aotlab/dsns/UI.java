@@ -5,15 +5,10 @@ package it.unipr.aotlab.dsns;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 
 import java.util.ResourceBundle;
 
@@ -28,6 +23,7 @@ public class UI extends Composite {
     String RESOURCE_BUNDLE_NAME = "it.unipr.aotlab.dsns.messages.Messages";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(RESOURCE_BUNDLE_NAME);
     private Text insertTextEdit;
+    private List friendsList;
 
     /**
      * Constructs a new instance of this class given its parent
@@ -69,8 +65,30 @@ public class UI extends Composite {
 
         createTitleLabel();
         createInsertField();
+        createFriendsGroup();
+        createPostsGroup();
 
         return true;
+    }
+
+    private void createPostsGroup() {
+
+    }
+
+    private void createFriendsGroup() {
+        Group friendsGroup = new Group(this, SWT.SHADOW_IN);
+        friendsGroup.setText("friendsGroupLabel");
+        friendsGroup.setLayout(new GridLayout(1, false));
+
+        friendsList = new List(friendsGroup, SWT.NULL);
+        pseudoInitializeList(friendsList);
+
+    }
+
+    private void pseudoInitializeList(final List tmpList) {
+        tmpList.add("Foo");
+        tmpList.add("Bar");
+        tmpList.add("Baz");
     }
 
     private void createInsertField() {
@@ -78,9 +96,6 @@ public class UI extends Composite {
         insertionGroup.setText(resourceBundle.getString("dsns.insertionGroupLabel"));
         insertionGroup.setLayout(new GridLayout(4, false));
         insertionGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 4, 10));
-
-//        Label lblDescription = new Label(insertionGroup, SWT.LEFT);
-//        lblDescription.setText(resourceBundle.getString("dsns.insertMessageLabel"));
 
         insertTextEdit = new Text(insertionGroup, SWT.MULTI);
         insertTextEdit.setText("");
