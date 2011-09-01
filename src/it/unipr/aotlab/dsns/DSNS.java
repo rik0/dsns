@@ -33,6 +33,10 @@ public class DSNS implements UnloadablePlugin {
     public void initialize(final PluginInterface pluginInterface) throws PluginException {
         this.pluginInterface = pluginInterface;
         initializeLogger();
+        initializeUIManager();
+    }
+
+    private void initializeUIManager() {
         this.pluginInterface.getUIManager().addUIListener(new UIManagerListener() {
 
             @Override
