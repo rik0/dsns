@@ -5,6 +5,9 @@ package it.unipr.aotlab.dsns;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.UnloadablePlugin;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
@@ -34,6 +37,18 @@ public class DSNS implements UnloadablePlugin {
         this.pluginInterface = pluginInterface;
         initializeLogger();
         initializeUIManager();
+        initializeDDB();
+    }
+
+    private void initializeDDB() {
+        DistributedDatabase ddb = pluginInterface.getDistributedDatabase();
+        DistributedDatabaseKey key = null;
+        try {
+            key = ddb.createKey(1);
+        } catch (DistributedDatabaseException e) {
+            e.printStackTrace();
+        }
+        key.
     }
 
     private void initializeUIManager() {
