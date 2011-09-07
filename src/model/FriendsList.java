@@ -2,6 +2,8 @@
 
 package model;
 
+import java.util.List;
+
 /**
  * User: enrico
  * Package: model.entities
@@ -9,4 +11,7 @@ package model;
  * Time: 10:25 AM
  */
 public class FriendsList {
+    List backingList;
+
+    
 }
