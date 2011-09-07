@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/azdhtrss/azdhtrss.iml" filepath="$PROJECT_DIR$/azdhtrss/azdhtrss.iml" />
       <module fileurl="file://$PROJECT_DIR$/dsns.iml" filepath="$PROJECT_DIR$/dsns.iml" />
     </modules>
   </component>
