@@ -48,7 +48,6 @@ public class DSNS implements UnloadablePlugin {
         } catch (DistributedDatabaseException e) {
             e.printStackTrace();
         }
-        key.
     }
 
     private void initializeUIManager() {
