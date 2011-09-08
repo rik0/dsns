@@ -68,6 +68,7 @@ public class UI extends Composite {
         createFriendsGroup();
         createPostsGroup();
 
+
         return true;
     }
 

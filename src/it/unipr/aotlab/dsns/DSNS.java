@@ -2,15 +2,15 @@
 
 package it.unipr.aotlab.dsns;
 
-import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.UnloadablePlugin;
 import org.gudy.azureus2.plugins.ddb.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-
-import java.util.Observable;
-import java.util.Observer;
 
 /**
  * User: enrico
@@ -27,9 +27,6 @@ public class DSNS implements UnloadablePlugin {
     private LoggerChannel logChannel;
     private DistributedDatabase ddb;
 
-    private DHTInitializationObservable dhtReady;
-
-
     @Override
     public void unload() throws PluginException {
 
@@ -40,17 +37,31 @@ public class DSNS implements UnloadablePlugin {
         this.pluginInterface = pluginInterface;
         initializeLogger();
         initializeUIManager();
-        pluginInterface.getUtilities().createThread(
-                "DSNS:DHTInitializationSignaler",
-                new DHTInitializationSignaler()
-        );
-        pluginInterface.getUtilities().createThread(
-                "DSNS:DHTInitializationSignaler",
-                new DHTInitializationSignaler()
-        );
-        dhtReady = new DHTInitializationObservable();
-        dhtReady.addObserver(
-                new DHTInitializationObserver()
+        pluginInterface.addListener(
+                new PluginListener() {
+                    @Override
+                    public void initializationComplete() {
+                        pluginInterface.getUtilities().createThread(
+                                "CHECK DHT",
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        System.out.println(checkDHTAvailable());
+                                    }
+                                }
+                        );
+                    }
+
+                    @Override
+                    public void closedownInitiated() {
+
+                    }
+
+                    @Override
+                    public void closedownComplete() {
+
+                    }
+                }
         );
     }
 
@@ -83,7 +94,7 @@ public class DSNS implements UnloadablePlugin {
     }
 
     private void initializeUIManager() {
-        this.pluginInterface.getUIManager().addUIListener(new UIManagerListener() {
+        pluginInterface.getUIManager().addUIListener(new UIManagerListener() {
 
             @Override
             public void UIAttached(final UIInstance uiInstance) {
@@ -138,76 +149,19 @@ public class DSNS implements UnloadablePlugin {
         this.swtInstance = null;
     }
 
-    class DHTInitializationObservable extends Observable {
-        public boolean isDhtReady() {
-            return dhtReady;
+    protected boolean
+    checkDHTAvailable() {
+        final DistributedDatabase distributedDatabase = pluginInterface.getDistributedDatabase();
+        if (!distributedDatabase.isAvailable()) {
+
+            logChannel.logAlert(
+                    LoggerChannel.LT_ERROR,
+                    PLUGIN_NAME + " initialisation failed, Distributed Database unavailable");
+            return false;
         }
 
-        public void setDhtReady(final boolean dhtReady) {
-            this.dhtReady = dhtReady;
-            this.setChanged();
-        }
-
-        boolean dhtReady = false;
+        return true;
     }
 
-    class DHTInitializationObserver implements Observer {
-        @Override
-        public void update(final Observable observable, final Object o) {
-            assert observable == dhtReady;
-            pluginInterface.addListener(
-                    new PluginListener() {
-                        @Override
-                        public void initializationComplete() {
-                            //ddb = pluginInterface.getDistributedDatabase();
-                            //setAndReadKey(ddb);
-                        }
-
-                        @Override
-                        public void closedownInitiated() {
-
-                        }
-
-                        @Override
-                        public void closedownComplete() {
-
-                        }
-                    }
-            );
-            pluginInterface.addEventListener(
-                    new PluginEventListener() {
-                        @Override
-                        public void handleEvent(final PluginEvent ev) {
-                            System.out.println(ev);
-                        }
-                    }
-            );
-        }
-    }
-
-    class DHTInitializationSignaler extends Thread {
-        final private DistributedDatabase dht;
-
-        DHTInitializationSignaler() {
-            dht = pluginInterface.getDistributedDatabase();
-        }
-
-        @Override
-        public void run() {
-            do {
-                if (dht.isAvailable()) {
-                    dhtReady.setDhtReady(true);
-                    break;
-                } else {
-                    try {
-                        sleep(250);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        continue;
-                    }
-                }
-            } while (true);
-        }
-    }
 
 }
