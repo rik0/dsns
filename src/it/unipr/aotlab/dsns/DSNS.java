@@ -12,6 +12,10 @@ import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
 /**
  * User: enrico
  * Package: it.unipr.aotlab.DSNS_PLUGIN_CHANNEL_NAME
@@ -46,7 +50,11 @@ public class DSNS implements UnloadablePlugin {
                                 new Runnable() {
                                     @Override
                                     public void run() {
-                                        System.out.println(checkDHTAvailable());
+                                        if ((ddb = pluginInterface.getDistributedDatabase()) == null
+                                                || !ddb.isAvailable()) {
+                                            ddb = null;
+                                        }
+                                        setAndReadKey(ddb);
                                     }
                                 }
                         );
@@ -66,32 +74,80 @@ public class DSNS implements UnloadablePlugin {
     }
 
 
-    private void setAndReadKey(DistributedDatabase ddb) {
-        DistributedDatabaseKey key = null;
-        DistributedDatabaseValue val = null;
+    private void setAndReadKey(final DistributedDatabase ddb) {
         try {
-            key = ddb.createKey("foo");
-            val = ddb.createValue("val");
+            final DistributedDatabaseKey key = ddb.createKey("foo");
+            final DistributedDatabaseValue val = ddb.createValue("val");
             ddb.write(new DistributedDatabaseListener() {
+
                 @Override
                 public void event(final DistributedDatabaseEvent event) {
-                    log("WHOOO!");
+                    switch (event.getType()) {
+                        case DistributedDatabaseEvent.ET_OPERATION_COMPLETE:
+                            try {
+                                ddb.read(new DistributedDatabaseListener() {
+
+                                    private Object deserializeValue(final DistributedDatabaseValue value) {
+                                        try {
+                                            byte[] byteValue = (byte[]) value.getValue(byte[].class);
+                                            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(byteValue));
+                                            return ois.readObject();
+                                        } catch (DistributedDatabaseException e) {
+                                            return null;
+                                        } catch (IOException e) {
+                                            return null;
+                                        } catch (ClassNotFoundException e) {
+                                            return null;
+                                        }
+                                    }
+
+                                    @Override
+                                    public void event(final DistributedDatabaseEvent event) {
+                                        switch (event.getType()) {
+                                            case DistributedDatabaseEvent.ET_OPERATION_TIMEOUT:
+                                                log("TIMEOUT!");
+                                                break;
+                                            case DistributedDatabaseEvent.ET_VALUE_READ:
+                                                DistributedDatabaseValue value = event.getValue();
+                                                Object o = deserializeValue(value);
+                                                log(Util.show(o));
+                                                if (o != null) {
+                                                    log(o);
+                                                } else {
+                                                    log("<<NULL>>");
+                                                }
+                                                break;
+                                            case DistributedDatabaseEvent.ET_OPERATION_COMPLETE:
+                                                log("LOOKUP COMPLETE!");
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }, key, 2000);
+                            } catch (DistributedDatabaseException e) {
+                                e.printStackTrace();
+                            }
+                        case DistributedDatabaseEvent.ET_OPERATION_STARTS:
+                            log("WRITE STARTED");
+                            break;
+                        case DistributedDatabaseEvent.ET_OPERATION_TIMEOUT:
+                            log("TIMEOUT");
+                            break;
+                        case DistributedDatabaseEvent.ET_VALUE_WRITTEN:
+                            log("WROTE");
+                            break;
+                        default:
+                            log(event);
+                            break;
+                    }
                 }
             }, key, val);
-            Thread.sleep(1000);
-            ddb.read(new DistributedDatabaseListener() {
-                @Override
-                public void event(final DistributedDatabaseEvent event) {
-                    log("HAAAA!");
-                    log(event.toString());
-                }
-            }, key, 2000);
         } catch (DistributedDatabaseException e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
+
     }
+
 
     private void initializeUIManager() {
         pluginInterface.getUIManager().addUIListener(new UIManagerListener() {
@@ -127,9 +183,9 @@ public class DSNS implements UnloadablePlugin {
         );
     }
 
-    private void log(final String s) {
-        logChannel.log(s);
-
+    private void log(final Object s) {
+        logChannel.log(s.toString());
+        System.out.println(s);
     }
 
     public UIInstance getSwtInstance() {
